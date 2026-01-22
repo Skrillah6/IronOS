@@ -1,0 +1,26 @@
+name: Build TS101
+
+on:
+  push:
+    branches:
+      - main
+      - ts101-build
+      - oled-experiment-ts101
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build TS101 firmware (EN)
+        run: |
+          make firmware-EN model=TS101
+
+      - name: Upload TS101 firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: TS101-Firmware
+          path: BUILDS/TS101
