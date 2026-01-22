@@ -12,22 +12,37 @@ jobs:
       image: alpine:3.19
 
     steps:
+      # 1️⃣ Git MUST be installed first
+      - name: Install base tools
+        run: apk add --no-cache \
+          git \
+          bash \
+          make \
+          python3 \
+          py3-pip \
+          findutils \
+          gcc-arm-none-eabi \
+          g++-arm-none-eabi \
+          newlib-arm-none-eabi
+
+      # 2️⃣ Checkout WITH submodules
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Install deps
-        run: apk add --no-cache gcc-arm-none-eabi g++-arm-none-eabi newlib-arm-none-eabi findutils python3 py3-pip make git bash
-
+      # 3️⃣ Python dependency
       - name: Python deps
         run: python3 -m pip install --break-system-packages bdflib
 
-      - name: Build TS101 (EN)
+      # 4️⃣ Build TS101 EN only (fast & reliable)
+      - name: Build TS101 EN
         run: make -C source firmware-EN model=TS101
 
+      # 5️⃣ Licenses
       - name: Copy licenses
         run: cp LICENSE scripts/LICENSE_RELEASE.md source/Hexfile/
 
+      # 6️⃣ Upload firmware
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
