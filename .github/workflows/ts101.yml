@@ -1,12 +1,9 @@
-name: Build TS101 Firmware
+name: TS101 Build
 
 on:
   push:
-    branches:
-      - ts101-build1
+    branches: [ts101-build1]
   pull_request:
-    branches:
-      - ts101-build1
 
 jobs:
   build-ts101:
@@ -15,43 +12,24 @@ jobs:
       image: alpine:3.19
 
     steps:
-      - name: Install dependencies (apk)
-        run: apk add --no-cache \
-          gcc-arm-none-eabi \
-          g++-arm-none-eabi \
-          newlib-arm-none-eabi \
-          findutils \
-          python3 \
-          py3-pip \
-          make \
-          git \
-          bash
-
-      - name: Install python dependencies
-        run: python3 -m pip install --break-system-packages bdflib
-
-      - name: Checkout repository (with submodules)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Install deps
+        run: apk add --no-cache gcc-arm-none-eabi g++-arm-none-eabi newlib-arm-none-eabi findutils python3 py3-pip make git bash
 
-      - name: Build TS101 firmware
-        run: |
-          cd source
-          ./build.sh -m TS101 -l EN
+      - name: Python deps
+        run: python3 -m pip install --break-system-packages bdflib
 
-      - name: List build output (debug)
-        run: ls -R BUILDS/TS101
+      - name: Build TS101 (EN)
+        run: make -C source firmware-EN model=TS101
 
-      - name: Upload TS101 firmware
+      - name: Copy licenses
+        run: cp LICENSE scripts/LICENSE_RELEASE.md source/Hexfile/
+
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
           name: TS101-Firmware
-          path: |
-            BUILDS/TS101/*.bin
-            BUILDS/TS101/*.hex
-            BUILDS/TS101/*.dfu
-          if-no-files-found: error
+          path: source/Hexfile/TS101_*
