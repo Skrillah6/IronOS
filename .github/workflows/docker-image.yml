@@ -1,26 +1,56 @@
-name: Build TS101
+name: Build TS101 (EN)
 
 on:
   push:
     branches:
+      - ts101-build1
+  pull_request:
+    branches:
       - main
-      - ts101-build
-      - oled-experiment-ts101
+  workflow_dispatch:   # allows manual runs
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-ts101:
+    runs-on: ubuntu-22.04
+    container:
+      image: alpine:3.19
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Build TS101 firmware (EN)
+      - name: Install system dependencies
         run: |
-          make firmware-EN model=TS101
+          apk add --no-cache \
+            gcc-arm-none-eabi g++-arm-none-eabi \
+            newlib-arm-none-eabi \
+            python3 py3-pip make git bash findutils
+
+      - name: Install python dependencies
+        run: python3 -m pip install --break-system-packages bdflib
+
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Git ownership exception
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Build TS101 firmware (EN only)
+        run: |
+          cd source
+          ./build.sh -m TS101 -l EN
+
+      - name: Copy license files
+        run: cp LICENSE scripts/LICENSE_RELEASE.md source/Hexfile/
 
       - name: Upload TS101 firmware
         uses: actions/upload-artifact@v4
         with:
           name: TS101-Firmware
-          path: BUILDS/TS101
+          path: |
+            source/Hexfile/TS101_*_EN.bin
+            source/Hexfile/TS101_*_EN.dfu
+            source/Hexfile/TS101_*_EN.hex
+            source/Hexfile/LICENSE
+            source/Hexfile/LICENSE_RELEASE.md
+          if-no-files-found: error
