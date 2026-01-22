@@ -14,16 +14,17 @@ jobs:
     steps:
       # 1️⃣ Git MUST be installed first
       - name: Install base tools
-        run: apk add --no-cache \
-          git \
-          bash \
-          make \
-          python3 \
-          py3-pip \
-          findutils \
-          gcc-arm-none-eabi \
-          g++-arm-none-eabi \
-          newlib-arm-none-eabi
+        run: |
+          apk add --no-cache \
+            git \
+            bash \
+            make \
+            python3 \
+            py3-pip \
+            findutils \
+            gcc-arm-none-eabi \
+            g++-arm-none-eabi \
+            newlib-arm-none-eabi
 
       # 2️⃣ Checkout WITH submodules
       - uses: actions/checkout@v4
